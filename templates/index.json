@@ -82,11 +82,92 @@
         "padding_top": 40,
         "padding_bottom": 52
       }
+    },
+    "rich_text_9FJxkM": {
+      "type": "rich-text",
+      "blocks": {
+        "heading_6yemh9": {
+          "type": "heading",
+          "settings": {
+            "heading": "Talk about your brand",
+            "heading_size": "h1"
+          }
+        },
+        "text_9RCX34": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Share information about your brand with your customers. Describe a product, make announcements, or welcome customers to your store.</p>"
+          }
+        },
+        "button_99HKhj": {
+          "type": "button",
+          "settings": {
+            "button_label": "Button label",
+            "button_link": "",
+            "button_style_secondary": false,
+            "button_label_2": "",
+            "button_link_2": "",
+            "button_style_secondary_2": false
+          }
+        }
+      },
+      "block_order": [
+        "heading_6yemh9",
+        "text_9RCX34",
+        "button_99HKhj"
+      ],
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "",
+        "full_width": true,
+        "padding_top": 40,
+        "padding_bottom": 52
+      }
+    },
+    "collage_hHtxEd": {
+      "type": "collage",
+      "blocks": {
+        "image_AN4RDd": {
+          "type": "image",
+          "settings": {}
+        },
+        "product_jjMWf7": {
+          "type": "product",
+          "settings": {
+            "product": "",
+            "second_image": false
+          }
+        },
+        "collection_naYYcJ": {
+          "type": "collection",
+          "settings": {
+            "collection": ""
+          }
+        }
+      },
+      "block_order": [
+        "image_AN4RDd",
+        "product_jjMWf7",
+        "collection_naYYcJ"
+      ],
+      "settings": {
+        "heading": "Multimedia collage",
+        "heading_size": "h1",
+        "desktop_layout": "left",
+        "mobile_layout": "column",
+        "card_styles": "product-card-wrapper",
+        "color_scheme": "",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
     }
   },
   "order": [
     "featured_collection",
     "15a777d9-ab7c-4162-813f-a5673cc417f3",
-    "rich_text_m4iiNX"
+    "rich_text_m4iiNX",
+    "rich_text_9FJxkM",
+    "collage_hHtxEd"
   ]
 }
