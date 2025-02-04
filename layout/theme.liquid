@@ -439,31 +439,38 @@ document.addEventListener("DOMContentLoaded", function () {
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const variantRadios = document.querySelectorAll(".variant-radio");
-    const variantIdInput = document.getElementById("selected-variant-id");
-    const addToCartButton = document.querySelector(".variant-button");
+    const addToCartButton = document.getElementById("add-to-cart-btn");
+    const selectedVariantInput = document.getElementById("selected-variant-id");
     const cartResponse = document.getElementById("cart-response");
 
     let selectedOptions = {};
 
+    const variantMap = {{ variantMap | json }};
+
     function updateSelectedVariant() {
-      let selectedValues = [];
-      document.querySelectorAll(".variant-radio:checked").forEach((input) => {
-        selectedValues[input.dataset.optionIndex] = input.value;
+      document.querySelectorAll(".option-group").forEach(group => {
+        const selectedRadio = group.querySelector("input:checked");
+        if (selectedRadio) {
+          selectedOptions[group.dataset.index] = selectedRadio.value;
+        }
       });
 
+      let selectedValues = Object.values(selectedOptions);
       let matchingVariant = null;
 
-      {% for variant in product.variants %}
-        if (JSON.stringify({{ variant.options | json }}) === JSON.stringify(selectedValues)) {
-          matchingVariant = {
-            id: "{{ variant.id }}",
-            available: {{ variant.available | json }}
-          };
+      variantMap.forEach(entry => {
+        let parts = entry.split(":");
+        let options = JSON.parse(parts[0]);
+        let variantId = parts[1];
+        let available = parts[2] === "true";
+
+        if (JSON.stringify(options) === JSON.stringify(selectedValues)) {
+          matchingVariant = { id: variantId, available: available };
         }
-      {% endfor %}
+      });
 
       if (matchingVariant) {
-        variantIdInput.value = matchingVariant.id;
+        selectedVariantInput.value = matchingVariant.id;
         addToCartButton.disabled = !matchingVariant.available;
       } else {
         addToCartButton.disabled = true;
@@ -471,7 +478,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function addToCart() {
-      let variantId = variantIdInput.value;
+      let variantId = selectedVariantInput.value;
       if (!variantId) return;
 
       fetch("/cart/add.js", {
