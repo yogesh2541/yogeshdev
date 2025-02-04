@@ -104,42 +104,85 @@
     <div class="variant-drop-down">
       <form action="/cart/add" method="post" id="product-form-{{ product.id }}">
         <div class="variant-price-wrapper">
-        <select name="id" class="variant-selector">
-          {% for variant in product.variants %}
-            {% if variant.available %}
-              <option
-                value="{{ variant.id }}"
-                data-price="{{ variant.price | money }}"
-                data-compare-price="{{ variant.compare_at_price | money }}"
-              >
-                {{ variant.title }}
-              </option>
-            {% else %}
-              <option disabled="disabled">{{ variant.title }} - Sold Out</option>
-            {% endif %}
-          {% endfor %}
-        </select>
-        <br>
+          
+          <!-- First Option Selector -->
+          <label for="option1">{{ product.options[0] }}</label>
+          <select id="option1" name="option1" class="variant-selector">
+            {% for option in product.options_by_name[product.options[0]] %}
+              <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+          </select>
+
+          <!-- Second Option Selector -->
+          {% if product.options.size > 1 %}
+            <label for="option2">{{ product.options[1] }}</label>
+            <select id="option2" name="option2" class="variant-selector">
+              {% for option in product.options_by_name[product.options[1]] %}
+                <option value="{{ option }}">{{ option }}</option>
+              {% endfor %}
+            </select>
+          {% endif %}
+
+          <br>
           <div class="price-wrapper">
-        <p class="variant-price">{{ product.variants.first.price | money }}</p>
-        {% if product.variants.first.compare_at_price > product.variants.first.price %}
-          <p class="compare-price">{{ product.variants.first.compare_at_price | money }}</p>
-        {% endif %}
+            <p class="variant-price"></p>
+            <p class="compare-price"></p>
           </div>
         </div>
-        <button type="button" class="variant-button" data-variant-id="{{ product.variants.first.id }}" {% if product.metafields.custom.show_coming_soon == true %} disabled {% endif %}>
-          {% if product.metafields.custom.show_pre_order == true %}
-            <span>Pre-order</span>
-          {% elsif product.metafields.custom.show_coming_soon == true %}
-            <span>Coming Soon</span>
-          {% else %}  
-            Add to Cart
-          {% endif %}
+
+        <input type="hidden" name="id" id="selected-variant-id">
+        <button type="submit" class="variant-button" disabled>
+          Add to Cart
         </button>
       </form>
     </div>
   {% endif %}
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const productVariants = {{ product.variants | json }};
+    const option1Selector = document.getElementById("option1");
+    const option2Selector = document.getElementById("option2");
+    const priceWrapper = document.querySelector(".price-wrapper");
+    const variantPrice = document.querySelector(".variant-price");
+    const comparePrice = document.querySelector(".compare-price");
+    const variantIdInput = document.getElementById("selected-variant-id");
+    const addToCartButton = document.querySelector(".variant-button");
+
+    function updateVariant() {
+      const selectedOption1 = option1Selector.value;
+      const selectedOption2 = option2Selector ? option2Selector.value : null;
+
+      const matchingVariant = productVariants.find(variant => {
+        return (
+          variant.option1 === selectedOption1 &&
+          (!selectedOption2 || variant.option2 === selectedOption2)
+        );
+      });
+
+      if (matchingVariant) {
+        variantPrice.textContent = matchingVariant.price;
+        comparePrice.textContent = matchingVariant.compare_at_price > matchingVariant.price
+          ? matchingVariant.compare_at_price
+          : "";
+        
+        variantIdInput.value = matchingVariant.id;
+        addToCartButton.disabled = !matchingVariant.available;
+      } else {
+        variantPrice.textContent = "Not available";
+        comparePrice.textContent = "";
+        addToCartButton.disabled = true;
+      }
+    }
+
+    option1Selector.addEventListener("change", updateVariant);
+    if (option2Selector) option2Selector.addEventListener("change", updateVariant);
+
+    updateVariant(); // Initialize with the first variant
+  });
+</script>
+
           </li>
         {%- else -%}
           {%- for i in (1..4) -%}
