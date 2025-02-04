@@ -433,6 +433,73 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
     <script> AOS.init(); </script>
-  
+
+
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const variantRadios = document.querySelectorAll(".variant-radio");
+    const variantIdInput = document.getElementById("selected-variant-id");
+    const addToCartButton = document.querySelector(".variant-button");
+    const cartResponse = document.getElementById("cart-response");
+
+    function updateSelectedVariant() {
+      let selectedValues = [];
+      document.querySelectorAll(".variant-radio:checked").forEach((input) => {
+        selectedValues.push(input.value);
+      });
+
+      let matchingVariant = null;
+
+      {% for variant in product.variants %}
+        if ({{ variant.options | json }}.every((val, i) => val === selectedValues[i])) {
+          matchingVariant = {
+            id: "{{ variant.id }}",
+            available: {{ variant.available | json }}
+          };
+        }
+      {% endfor %}
+
+      if (matchingVariant) {
+        variantIdInput.value = matchingVariant.id;
+        addToCartButton.disabled = !matchingVariant.available;
+      } else {
+        addToCartButton.disabled = true;
+      }
+    }
+
+    function addToCart() {
+      let variantId = variantIdInput.value;
+      if (!variantId) return;
+
+      fetch("/cart/add.js", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id: variantId,
+          quantity: 1
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        cartResponse.innerText = "✅ Added to cart!";
+        setTimeout(() => cartResponse.innerText = "", 2000);
+      })
+      .catch(error => {
+        cartResponse.innerText = "❌ Error adding to cart.";
+      });
+    }
+
+    variantRadios.forEach(radio => {
+      radio.addEventListener("change", updateSelectedVariant);
+    });
+
+    addToCartButton.addEventListener("click", addToCart);
+  });
+</script>
+
+    
   </body>
 </html>
