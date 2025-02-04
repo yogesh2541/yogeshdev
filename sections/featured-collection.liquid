@@ -132,153 +132,43 @@
     <div class="variant-drop-down">
       <form action="/cart/add" method="post" id="product-form-{{ product.id }}">
         <div class="variant-price-wrapper">
-          
-          <!-- Size Options -->
-          <div class="variant-group">
-            <label>Size:</label>
-            <div class="variant-options" id="size-options">
-              {% assign sizes = '' %}
-              {% for variant in product.variants %}
-                {% assign size = variant.option1 %}
-                {% unless sizes contains size %}
-                  {% assign sizes = sizes | append: size | append: ',' %}
-                  <button type="button" 
-                          class="variant-option size-option" 
-                          data-size="{{ size }}">
-                    {{ size }}
-                  </button>
-                {% endunless %}
-              {% endfor %}
-            </div>
-          </div>
-
-          <!-- Color Options -->
-          <div class="variant-group">
-            <label>Color:</label>
-            <div class="variant-options" id="color-options">
-              {% assign colors = '' %}
-              {% for variant in product.variants %}
-                {% assign color = variant.option2 %}
-                {% unless colors contains color %}
-                  {% assign colors = colors | append: color | append: ',' %}
-                  <button type="button" 
-                          class="variant-option color-option" 
-                          data-color="{{ color }}">
-                    {{ color }}
-                  </button>
-                {% endunless %}
-              {% endfor %}
-            </div>
-          </div>
-
-          <br>
-          <div class="price-wrapper">
-            <p class="variant-price">{{ product.variants.first.price | money }}</p>
-            {% if product.variants.first.compare_at_price > product.variants.first.price %}
-              <p class="compare-price">{{ product.variants.first.compare_at_price | money }}</p>
+        <select name="id" class="variant-selector">
+          {% for variant in product.variants %}
+            {% if variant.available %}
+              <option
+                value="{{ variant.id }}"
+                data-price="{{ variant.price | money }}"
+                data-compare-price="{{ variant.compare_at_price | money }}"
+              >
+                {{ variant.title }}
+              </option>
+            {% else %}
+              <option disabled="disabled">{{ variant.title }} - Sold Out</option>
             {% endif %}
+          {% endfor %}
+        </select>
+        <br>
+          <div class="price-wrapper">
+        <p class="variant-price">{{ product.variants.first.price | money }}</p>
+        {% if product.variants.first.compare_at_price > product.variants.first.price %}
+          <p class="compare-price">{{ product.variants.first.compare_at_price | money }}</p>
+        {% endif %}
           </div>
         </div>
-
-        <input type="hidden" name="id" id="selected-variant-id" value="{{ product.variants.first.id }}">
-        <button type="submit" class="variant-button" disabled>
-          Add to Cart
+        <button type="button" class="variant-button" data-variant-id="{{ product.variants.first.id }}" {% if product.metafields.custom.show_coming_soon == true %} disabled {% endif %}>
+          {% if product.metafields.custom.show_pre_order == true %}
+            <span>Pre-order</span>
+          {% elsif product.metafields.custom.show_coming_soon == true %}
+            <span>Coming Soon</span>
+          {% else %}  
+            Add to Cart
+          {% endif %}
         </button>
       </form>
     </div>
   {% endif %}
+
 </div>
-
-<style>
-  .variant-group {
-    margin-bottom: 10px;
-  }
-  .variant-options {
-    display: flex;
-    gap: 10px;
-  }
-  .variant-option {
-    padding: 10px 15px;
-    border: 1px solid #ddd;
-    background-color: white;
-    cursor: pointer;
-    transition: 0.3s;
-  }
-  .variant-option:hover, .variant-option.active {
-    background-color: black;
-    color: white;
-  }
-  .variant-option.sold-out {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-</style>
-
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const sizeButtons = document.querySelectorAll(".size-option");
-    const colorButtons = document.querySelectorAll(".color-option");
-    const variantIdInput = document.getElementById("selected-variant-id");
-    const variantPrice = document.querySelector(".variant-price");
-    const comparePrice = document.querySelector(".compare-price");
-    const addToCartButton = document.querySelector(".variant-button");
-
-    let selectedSize = null;
-    let selectedColor = null;
-
-    function updateSelectedVariant() {
-      if (!selectedSize || !selectedColor) return;
-
-      let matchingVariant = null;
-
-      {% for variant in product.variants %}
-        if ("{{ variant.option1 }}" === selectedSize && "{{ variant.option2 }}" === selectedColor) {
-          matchingVariant = {
-            id: "{{ variant.id }}",
-            price: "{{ variant.price | money }}",
-            comparePrice: "{{ variant.compare_at_price | money }}",
-            available: {{ variant.available | json }}
-          };
-        }
-      {% endfor %}
-
-      if (matchingVariant) {
-        variantIdInput.value = matchingVariant.id;
-        variantPrice.textContent = matchingVariant.price;
-        comparePrice.textContent = matchingVariant.comparePrice !== "null" ? matchingVariant.comparePrice : "";
-
-        if (matchingVariant.available) {
-          addToCartButton.disabled = false;
-        } else {
-          addToCartButton.disabled = true;
-        }
-      } else {
-        addToCartButton.disabled = true;
-      }
-    }
-
-    function handleSelection(buttons, type) {
-      buttons.forEach(button => {
-        button.addEventListener("click", function () {
-          buttons.forEach(btn => btn.classList.remove("active"));
-          this.classList.add("active");
-
-          if (type === "size") {
-            selectedSize = this.dataset.size;
-          } else if (type === "color") {
-            selectedColor = this.dataset.color;
-          }
-
-          updateSelectedVariant();
-        });
-      });
-    }
-
-    handleSelection(sizeButtons, "size");
-    handleSelection(colorButtons, "color");
-  });
-</script>
-
           </li>
         {%- else -%}
           {%- for i in (1..4) -%}
