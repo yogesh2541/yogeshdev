@@ -140,58 +140,18 @@
     </div> -->
   {% endif %}
 
-{%- unless product.has_only_default_variant -%}
-  {%- assign variantMap = '{}' | parse_json -%}
+{% unless product.has_only_default_variant %}
+  {% for option in product.options_with_values %}
+    <fieldset>
+      <legend>{{ option.name }}</legend>
+      {% for value in option.values %}
+        <input type="radio" name="option[{{ option.name }}]" value="{{ value }}" id="{{ option.name }}-{{ value }}">
+        <label for="{{ option.name }}-{{ value }}">{{ value }}</label>
+      {% endfor %}
+    </fieldset>
+  {% endfor %}
+{% endunless %}
 
-  {%- for variant in product.variants -%}
-    {%- assign options = variant.options | json -%}
-    {%- assign id = variant.id | json -%}
-    {%- assign available = variant.available | json -%}
-    {%- assign newEntry = options | append: ':' | append: id | append: ':' | append: available -%}
-    {%- assign variantMap = variantMap | push: newEntry -%}
-  {%- endfor -%}
-
-  <div id="variant-options">
-    {%- for option in product.options_with_values -%}
-      <fieldset class="option-group" data-index="{{ forloop.index0 }}">
-        <legend>{{ option.name }}</legend>
-        {%- for value in option.values -%}
-          <input type="radio"
-            name="option-{{ forloop.parent.index0 }}"
-            value="{{ value | escape }}"
-            id="option-{{ forloop.parent.index0 }}-{{ value | escape }}"
-            class="variant-radio">
-          <label for="option-{{ forloop.parent.index0 }}-{{ value | escape }}">
-            {{ value | escape }}
-          </label>
-        {%- endfor -%}
-      </fieldset>
-    {%- endfor -%}
-  </div>
-{%- endunless -%}
-
-<input type="hidden" id="selected-variant-id">
-<button type="button" id="add-to-cart-btn" disabled>
-  Add to Cart
-</button>
-<div id="cart-response"></div>
-
-<style>
-  fieldset { margin-bottom: 15px; border: none; }
-  legend { font-weight: bold; margin-bottom: 5px; }
-  .variant-radio { display: none; }
-  .variant-radio + label {
-    padding: 10px 15px;
-    border: 1px solid #ddd;
-    cursor: pointer;
-    transition: 0.3s;
-    margin-right: 5px;
-    display: inline-block;
-  }
-  .variant-radio:checked + label { background-color: black; color: white; }
-  .variant-button:disabled { background-color: grey; cursor: not-allowed; }
-  #cart-response { margin-top: 10px; font-weight: bold; color: green; }
-</style>
 </div>
 
             
