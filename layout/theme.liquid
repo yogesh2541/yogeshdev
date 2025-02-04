@@ -443,16 +443,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const addToCartButton = document.querySelector(".variant-button");
     const cartResponse = document.getElementById("cart-response");
 
+    let selectedOptions = {};
+
     function updateSelectedVariant() {
       let selectedValues = [];
       document.querySelectorAll(".variant-radio:checked").forEach((input) => {
-        selectedValues.push(input.value);
+        selectedValues[input.dataset.optionIndex] = input.value;
       });
 
       let matchingVariant = null;
 
       {% for variant in product.variants %}
-        if ({{ variant.options | json }}.every((val, i) => val === selectedValues[i])) {
+        if (JSON.stringify({{ variant.options | json }}) === JSON.stringify(selectedValues)) {
           matchingVariant = {
             id: "{{ variant.id }}",
             available: {{ variant.available | json }}
@@ -474,13 +476,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
       fetch("/cart/add.js", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          id: variantId,
-          quantity: 1
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: variantId, quantity: 1 })
       })
       .then(response => response.json())
       .then(data => {
