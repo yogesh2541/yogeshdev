@@ -442,9 +442,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const addToCartButton = document.getElementById("add-to-cart-button");
     let selectedOptions = {};
 
-    // Convert Shopify's Liquid product variants into JavaScript object
+    // Convert Shopify's Liquid product variants into a JavaScript object
     const variants = {{ product.variants | json }};
+    const options = {{ product.options | json }};
 
+    // Handle changes in the selected radio buttons
     optionInputs.forEach((input) => {
         input.addEventListener("change", function () {
             const optionName = this.name.replace("option[", "").replace("]", "");
@@ -456,19 +458,21 @@ document.addEventListener("DOMContentLoaded", function () {
     function updateVariant() {
         const selectedVariant = variants.find((variant) => {
             return variant.options.every((option, index) => {
-                const optionName = {{ product.options | json }}[index];
+                const optionName = options[index];
                 return selectedOptions[optionName] === option;
             });
         });
 
-        if (selectedVariant) {
-            addToCartButton.disabled = !selectedVariant.available;
+        // If we find the selected variant and it is available
+        if (selectedVariant && selectedVariant.available) {
+            addToCartButton.disabled = false; // Enable the button
             addToCartButton.dataset.variantId = selectedVariant.id;
         } else {
-            addToCartButton.disabled = true;
+            addToCartButton.disabled = true; // Disable the button if variant is not available
         }
     }
 
+    // Add the selected variant to the cart
     addToCartButton.addEventListener("click", function () {
         const variantId = this.dataset.variantId;
         if (!variantId) return;
@@ -494,7 +498,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
-
 
 </script>
 
