@@ -139,9 +139,8 @@
       </form>
     </div>
   {% endif %}
-</div>
 
- {%- unless product.has_only_default_variant -%}
+{%- unless product.has_only_default_variant -%}
   {%- for option in product.options_with_values -%}
 
     {%- if section.settings.product_selector == 'radio' -%}
@@ -185,7 +184,12 @@
     {%- endif -%}
 
   {%- endfor -%}
-{%- endunless -%}           
+{%- endunless -%}
+
+  
+</div>
+
+            
 
  
           </li>
