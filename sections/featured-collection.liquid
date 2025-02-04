@@ -144,7 +144,7 @@
   {%- for option in product.options_with_values -%}
     <fieldset id="ProductSelect-option-{{ forloop.index0 }}" name="{{ option.name | handleize }}">
       <legend>{{ option.name | escape }}</legend>
-      
+
       {%- for value in option.values -%}
         {%- assign variant_label_state = true -%}
 
@@ -173,9 +173,11 @@
 {%- endunless -%}
 
 <input type="hidden" name="id" id="selected-variant-id" value="{{ product.variants.first.id }}">
-<button type="submit" class="variant-button" disabled>
+<button type="button" class="variant-button" disabled>
   Add to Cart
 </button>
+
+<div id="cart-response"></div>
 
 <style>
   fieldset {
@@ -205,8 +207,25 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
+  .variant-button {
+    padding: 10px 15px;
+    background-color: black;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 10px;
+  }
+  .variant-button:disabled {
+    background-color: grey;
+    cursor: not-allowed;
+  }
+  #cart-response {
+    margin-top: 10px;
+    font-weight: bold;
+    color: green;
+  }
 </style>
-
   
 </div>
 
