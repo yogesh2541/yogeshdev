@@ -146,25 +146,24 @@
       <legend>{{ option.name | escape }}</legend>
 
       {%- for value in option.values -%}
-        {%- assign variant_label_state = true -%}
-
-        {%- if product.options.size == 1 -%}
-          {%- unless product.variants[forloop.index0].available -%}
-            {%- assign variant_label_state = false -%}
-          {%- endunless -%}
-        {%- endif -%}
+        <!-- Find the first available variant with this value -->
+        {%- assign available_variant = false -%}
+        {%- for variant in product.variants -%}
+          {%- if variant.available and variant.options contains value -%}
+            {%- assign available_variant = true -%}
+          {%- endif -%}
+        {%- endfor -%}
 
         <input type="radio"
-          {% if option.selected_value == value %} checked="checked"{% endif %}
-          {% unless variant_label_state %} disabled="disabled"{% endunless %}
           value="{{ value | escape }}"
-          data-index="option{{ forloop.index }}"
+          data-option-index="{{ forloop.parent.index0 }}"
           name="{{ option.name | handleize }}"
           id="ProductSelect-option-{{ option.name | handleize }}-{{ value | escape }}"
-          class="variant-radio">
+          class="variant-radio"
+          {% unless available_variant %} disabled="disabled" {% endunless %}>
         
         <label for="ProductSelect-option-{{ option.name | handleize }}-{{ value | escape }}" 
-               class="{% unless variant_label_state %} disabled {% endunless %}">
+               class="{% unless available_variant %} disabled {% endunless %}">
           {{ value | escape }}
         </label>
       {%- endfor -%}
@@ -172,7 +171,7 @@
   {%- endfor -%}
 {%- endunless -%}
 
-<input type="hidden" name="id" id="selected-variant-id" value="{{ product.variants.first.id }}">
+<input type="hidden" id="selected-variant-id">
 <button type="button" class="variant-button" disabled>
   Add to Cart
 </button>
@@ -180,17 +179,9 @@
 <div id="cart-response"></div>
 
 <style>
-  fieldset {
-    margin-bottom: 15px;
-    border: none;
-  }
-  legend {
-    font-weight: bold;
-    margin-bottom: 5px;
-  }
-  .variant-radio {
-    display: none;
-  }
+  fieldset { margin-bottom: 15px; border: none; }
+  legend { font-weight: bold; margin-bottom: 5px; }
+  .variant-radio { display: none; }
   .variant-radio + label {
     padding: 10px 15px;
     border: 1px solid #ddd;
@@ -199,14 +190,8 @@
     margin-right: 5px;
     display: inline-block;
   }
-  .variant-radio:checked + label {
-    background-color: black;
-    color: white;
-  }
-  label.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+  .variant-radio:checked + label { background-color: black; color: white; }
+  label.disabled { opacity: 0.5; cursor: not-allowed; }
   .variant-button {
     padding: 10px 15px;
     background-color: black;
@@ -216,17 +201,9 @@
     transition: 0.3s;
     margin-top: 10px;
   }
-  .variant-button:disabled {
-    background-color: grey;
-    cursor: not-allowed;
-  }
-  #cart-response {
-    margin-top: 10px;
-    font-weight: bold;
-    color: green;
-  }
+  .variant-button:disabled { background-color: grey; cursor: not-allowed; }
+  #cart-response { margin-top: 10px; font-weight: bold; color: green; }
 </style>
-  
 </div>
 
             
