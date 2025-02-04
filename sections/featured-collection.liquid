@@ -207,44 +207,6 @@
   }
 </style>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const variantRadios = document.querySelectorAll(".variant-radio");
-    const variantIdInput = document.getElementById("selected-variant-id");
-    const addToCartButton = document.querySelector(".variant-button");
-
-    function updateSelectedVariant() {
-      let selectedValues = [];
-      document.querySelectorAll(".variant-radio:checked").forEach((input) => {
-        selectedValues.push(input.value);
-      });
-
-      let matchingVariant = null;
-
-      {% for variant in product.variants %}
-        if ({{ variant.options | json }}.every((val, i) => val === selectedValues[i])) {
-          matchingVariant = {
-            id: "{{ variant.id }}",
-            available: {{ variant.available | json }}
-          };
-        }
-      {% endfor %}
-
-      if (matchingVariant) {
-        variantIdInput.value = matchingVariant.id;
-        addToCartButton.disabled = !matchingVariant.available;
-      } else {
-        addToCartButton.disabled = true;
-      }
-    }
-
-    variantRadios.forEach(radio => {
-      radio.addEventListener("change", updateSelectedVariant);
-    });
-  });
-</script>
-
-
   
 </div>
 
