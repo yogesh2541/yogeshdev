@@ -142,49 +142,108 @@
 
 {%- unless product.has_only_default_variant -%}
   {%- for option in product.options_with_values -%}
+    <fieldset id="ProductSelect-option-{{ forloop.index0 }}" name="{{ option.name | handleize }}">
+      <legend>{{ option.name | escape }}</legend>
+      
+      {%- for value in option.values -%}
+        {%- assign variant_label_state = true -%}
 
-    {%- if section.settings.product_selector == 'radio' -%}
-      <fieldset id="ProductSelect-option-{{ forloop.index0 }}" name="{{ option.name | handleize }}">
-        <legend>
-          {{ option.name | escape }}
-        </legend>
-        {%- for value in option.values -%}
-          <!-- Check to see if there's a product size option. If there is a size, check to see if there's any availble for purchase. If not, set the variat control in a "disabled" state. -->
-          {%- assign variant_label_state = true -%}
+        {%- if product.options.size == 1 -%}
+          {%- unless product.variants[forloop.index0].available -%}
+            {%- assign variant_label_state = false -%}
+          {%- endunless -%}
+        {%- endif -%}
 
-          {%- if product.options.size == 1 -%}
-            {%- unless product.variants[forloop.index0].available -%}
-              {%- assign variant_label_state = false -%}
-            {%- endunless -%}
-          {%- endif -%}
-
-          <input type="radio"
-            {% if option.selected_value == value %} checked="checked"{% endif %}
-            {% unless variant_label_state %} disabled="disabled"{% endunless %}
-            value="{{ value | escape }}"
-            data-index="option{{ forloop.index }}"
-            name="{{ option.name | handleize }}"
-            id="ProductSelect-option-{{ option.name | handleize }}-{{ value | escape }}">
-          <label for="ProductSelect-option-{{ option.name | handleize }}-{{ value | escape }}">
-            {{ value | escape }}
-          </label>
-        {%- endfor -%}
-      </fieldset>
-    {%- else -%}
-      <label for="ProductSelect-option-{{ forloop.index0 }}">
-        {{ option.name | escape }}
-      </label>
-      <select id="ProductSelect-{{ forloop.index0 }}" data-index="option{{ forloop.index }}">
-        {%- for value in option.values -%}
-          <option value="{{ value | escape }}"{% if option.selected_value == value %} selected="selected"{% endif %}>
-            {{ value | escape }}
-          </option>
-        {%- endfor -%}
-      </select>
-    {%- endif -%}
-
+        <input type="radio"
+          {% if option.selected_value == value %} checked="checked"{% endif %}
+          {% unless variant_label_state %} disabled="disabled"{% endunless %}
+          value="{{ value | escape }}"
+          data-index="option{{ forloop.index }}"
+          name="{{ option.name | handleize }}"
+          id="ProductSelect-option-{{ option.name | handleize }}-{{ value | escape }}"
+          class="variant-radio">
+        
+        <label for="ProductSelect-option-{{ option.name | handleize }}-{{ value | escape }}" 
+               class="{% unless variant_label_state %} disabled {% endunless %}">
+          {{ value | escape }}
+        </label>
+      {%- endfor -%}
+    </fieldset>
   {%- endfor -%}
 {%- endunless -%}
+
+<input type="hidden" name="id" id="selected-variant-id" value="{{ product.variants.first.id }}">
+<button type="submit" class="variant-button" disabled>
+  Add to Cart
+</button>
+
+<style>
+  fieldset {
+    margin-bottom: 15px;
+    border: none;
+  }
+  legend {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  .variant-radio {
+    display: none;
+  }
+  .variant-radio + label {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-right: 5px;
+    display: inline-block;
+  }
+  .variant-radio:checked + label {
+    background-color: black;
+    color: white;
+  }
+  label.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const variantRadios = document.querySelectorAll(".variant-radio");
+    const variantIdInput = document.getElementById("selected-variant-id");
+    const addToCartButton = document.querySelector(".variant-button");
+
+    function updateSelectedVariant() {
+      let selectedValues = [];
+      document.querySelectorAll(".variant-radio:checked").forEach((input) => {
+        selectedValues.push(input.value);
+      });
+
+      let matchingVariant = null;
+
+      {% for variant in product.variants %}
+        if ({{ variant.options | json }}.every((val, i) => val === selectedValues[i])) {
+          matchingVariant = {
+            id: "{{ variant.id }}",
+            available: {{ variant.available | json }}
+          };
+        }
+      {% endfor %}
+
+      if (matchingVariant) {
+        variantIdInput.value = matchingVariant.id;
+        addToCartButton.disabled = !matchingVariant.available;
+      } else {
+        addToCartButton.disabled = true;
+      }
+    }
+
+    variantRadios.forEach(radio => {
+      radio.addEventListener("change", updateSelectedVariant);
+    });
+  });
+</script>
+
 
   
 </div>
