@@ -438,65 +438,71 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const optionInputs = document.querySelectorAll('input[type="radio"]');
-    const addToCartButton = document.getElementById("add-to-cart-button");
+  const gridItems = document.querySelectorAll('.grid__item'); // Get all grid items
+
+  gridItems.forEach((gridItem) => {
+    const form = gridItem.querySelector('.product-form');
+    const addToCartButton = gridItem.querySelector('.add-to-cart');
+    const optionInputs = gridItem.querySelectorAll('input[type="radio"]');
     let selectedOptions = {};
 
-    // Convert Shopify's Liquid product variants into a JavaScript object
-    const variants = {{ product.variants | json }};
-    const options = {{ product.options | json }};
+    const productId = gridItem.querySelector('.product-form').id.split('-')[2];
+    const product = {{ collections.all.products | json }}.find(p => p.id == productId);
+    const variants = product.variants;
+    const options = product.options;
 
     // Handle changes in the selected radio buttons
     optionInputs.forEach((input) => {
-        input.addEventListener("change", function () {
-            const optionName = this.name.replace("option[", "").replace("]", "");
-            selectedOptions[optionName] = this.value;
-            updateVariant();
-        });
+      input.addEventListener("change", function () {
+        const optionName = this.name.replace("option[", "").replace("]", "");
+        selectedOptions[optionName] = this.value;
+        updateVariant();
+      });
     });
 
     function updateVariant() {
-        const selectedVariant = variants.find((variant) => {
-            return variant.options.every((option, index) => {
-                const optionName = options[index];
-                return selectedOptions[optionName] === option;
-            });
+      const selectedVariant = variants.find((variant) => {
+        return variant.options.every((option, index) => {
+          const optionName = options[index];
+          return selectedOptions[optionName] === option;
         });
+      });
 
-        // If we find the selected variant and it is available
-        if (selectedVariant && selectedVariant.available) {
-            addToCartButton.disabled = false; // Enable the button
-            addToCartButton.dataset.variantId = selectedVariant.id;
-        } else {
-            addToCartButton.disabled = true; // Disable the button if variant is not available
-        }
+      // If we find the selected variant and it is available
+      if (selectedVariant && selectedVariant.available) {
+        addToCartButton.disabled = false; // Enable the button
+        addToCartButton.dataset.variantId = selectedVariant.id;
+      } else {
+        addToCartButton.disabled = true; // Disable the button if variant is not available
+      }
     }
 
     // Add the selected variant to the cart
     addToCartButton.addEventListener("click", function () {
-        const variantId = this.dataset.variantId;
-        if (!variantId) return;
+      const variantId = this.dataset.variantId;
+      if (!variantId) return;
 
-        fetch("/cart/add.js", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            },
-            body: JSON.stringify({
-                id: variantId,
-                quantity: 1,
-            }),
-        })
-        .then((response) => response.json())
-        .then((data) => {
-            console.log("Added to cart:", data);
-            alert("Product added to cart!");
-        })
-        .catch((error) => {
-            console.error("Error adding to cart:", error);
-        });
+      fetch("/cart/add.js", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({
+          id: variantId,
+          quantity: 1,
+        }),
+      })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Added to cart:", data);
+        alert("Product added to cart!");
+      })
+      .catch((error) => {
+        console.error("Error adding to cart:", error);
+      });
     });
+  });
 });
 
 </script>
