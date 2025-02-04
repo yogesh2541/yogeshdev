@@ -141,41 +141,39 @@
   {% endif %}
 
 {%- unless product.has_only_default_variant -%}
-  {%- for option in product.options_with_values -%}
-    <fieldset id="ProductSelect-option-{{ forloop.index0 }}" name="{{ option.name | handleize }}">
-      <legend>{{ option.name | escape }}</legend>
+  {%- assign variantMap = '{}' | parse_json -%}
 
-      {%- for value in option.values -%}
-        <!-- Find the first available variant with this value -->
-        {%- assign available_variant = false -%}
-        {%- for variant in product.variants -%}
-          {%- if variant.available and variant.options contains value -%}
-            {%- assign available_variant = true -%}
-          {%- endif -%}
-        {%- endfor -%}
-
-        <input type="radio"
-          value="{{ value | escape }}"
-          data-option-index="{{ forloop.parent.index0 }}"
-          name="{{ option.name | handleize }}"
-          id="ProductSelect-option-{{ option.name | handleize }}-{{ value | escape }}"
-          class="variant-radio"
-          {% unless available_variant %} disabled="disabled" {% endunless %}>
-        
-        <label for="ProductSelect-option-{{ option.name | handleize }}-{{ value | escape }}" 
-               class="{% unless available_variant %} disabled {% endunless %}">
-          {{ value | escape }}
-        </label>
-      {%- endfor -%}
-    </fieldset>
+  {%- for variant in product.variants -%}
+    {%- assign options = variant.options | json -%}
+    {%- assign id = variant.id | json -%}
+    {%- assign available = variant.available | json -%}
+    {%- assign newEntry = options | append: ':' | append: id | append: ':' | append: available -%}
+    {%- assign variantMap = variantMap | push: newEntry -%}
   {%- endfor -%}
+
+  <div id="variant-options">
+    {%- for option in product.options_with_values -%}
+      <fieldset class="option-group" data-index="{{ forloop.index0 }}">
+        <legend>{{ option.name }}</legend>
+        {%- for value in option.values -%}
+          <input type="radio"
+            name="option-{{ forloop.parent.index0 }}"
+            value="{{ value | escape }}"
+            id="option-{{ forloop.parent.index0 }}-{{ value | escape }}"
+            class="variant-radio">
+          <label for="option-{{ forloop.parent.index0 }}-{{ value | escape }}">
+            {{ value | escape }}
+          </label>
+        {%- endfor -%}
+      </fieldset>
+    {%- endfor -%}
+  </div>
 {%- endunless -%}
 
 <input type="hidden" id="selected-variant-id">
-<button type="button" class="variant-button" disabled>
+<button type="button" id="add-to-cart-btn" disabled>
   Add to Cart
 </button>
-
 <div id="cart-response"></div>
 
 <style>
@@ -191,16 +189,6 @@
     display: inline-block;
   }
   .variant-radio:checked + label { background-color: black; color: white; }
-  label.disabled { opacity: 0.5; cursor: not-allowed; }
-  .variant-button {
-    padding: 10px 15px;
-    background-color: black;
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: 0.3s;
-    margin-top: 10px;
-  }
   .variant-button:disabled { background-color: grey; cursor: not-allowed; }
   #cart-response { margin-top: 10px; font-weight: bold; color: green; }
 </style>
