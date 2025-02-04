@@ -133,23 +133,42 @@
       <form action="/cart/add" method="post" id="product-form-{{ product.id }}">
         <div class="variant-price-wrapper">
           
-          <!-- Variant Buttons -->
-          <div class="variant-options">
-            {% for variant in product.variants %}
-              {% if variant.available %}
-                <button type="button" 
-                        class="variant-option" 
-                        data-variant-id="{{ variant.id }}" 
-                        data-price="{{ variant.price | money }}" 
-                        data-compare-price="{{ variant.compare_at_price | money }}">
-                  {{ variant.title }}
-                </button>
-              {% else %}
-                <button type="button" class="variant-option sold-out" disabled>
-                  {{ variant.title }} - Sold Out
-                </button>
-              {% endif %}
-            {% endfor %}
+          <!-- Size Options -->
+          <div class="variant-group">
+            <label>Size:</label>
+            <div class="variant-options" id="size-options">
+              {% assign sizes = '' %}
+              {% for variant in product.variants %}
+                {% assign size = variant.option1 %}
+                {% unless sizes contains size %}
+                  {% assign sizes = sizes | append: size | append: ',' %}
+                  <button type="button" 
+                          class="variant-option size-option" 
+                          data-size="{{ size }}">
+                    {{ size }}
+                  </button>
+                {% endunless %}
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Color Options -->
+          <div class="variant-group">
+            <label>Color:</label>
+            <div class="variant-options" id="color-options">
+              {% assign colors = '' %}
+              {% for variant in product.variants %}
+                {% assign color = variant.option2 %}
+                {% unless colors contains color %}
+                  {% assign colors = colors | append: color | append: ',' %}
+                  <button type="button" 
+                          class="variant-option color-option" 
+                          data-color="{{ color }}">
+                    {{ color }}
+                  </button>
+                {% endunless %}
+              {% endfor %}
+            </div>
           </div>
 
           <br>
@@ -162,14 +181,8 @@
         </div>
 
         <input type="hidden" name="id" id="selected-variant-id" value="{{ product.variants.first.id }}">
-        <button type="submit" class="variant-button" {% if product.metafields.custom.show_coming_soon == true %} disabled {% endif %}>
-          {% if product.metafields.custom.show_pre_order == true %}
-            <span>Pre-order</span>
-          {% elsif product.metafields.custom.show_coming_soon == true %}
-            <span>Coming Soon</span>
-          {% else %}  
-            Add to Cart
-          {% endif %}
+        <button type="submit" class="variant-button" disabled>
+          Add to Cart
         </button>
       </form>
     </div>
@@ -177,9 +190,11 @@
 </div>
 
 <style>
+  .variant-group {
+    margin-bottom: 10px;
+  }
   .variant-options {
     display: flex;
-    flex-wrap: wrap;
     gap: 10px;
   }
   .variant-option {
@@ -201,36 +216,66 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    const variantButtons = document.querySelectorAll(".variant-option");
-    const priceWrapper = document.querySelector(".price-wrapper");
+    const sizeButtons = document.querySelectorAll(".size-option");
+    const colorButtons = document.querySelectorAll(".color-option");
+    const variantIdInput = document.getElementById("selected-variant-id");
     const variantPrice = document.querySelector(".variant-price");
     const comparePrice = document.querySelector(".compare-price");
-    const variantIdInput = document.getElementById("selected-variant-id");
     const addToCartButton = document.querySelector(".variant-button");
 
-    variantButtons.forEach(button => {
-      button.addEventListener("click", function () {
-        // Remove active class from all buttons
-        variantButtons.forEach(btn => btn.classList.remove("active"));
-        this.classList.add("active");
+    let selectedSize = null;
+    let selectedColor = null;
 
-        // Update hidden input for the selected variant
-        variantIdInput.value = this.dataset.variantId;
+    function updateSelectedVariant() {
+      if (!selectedSize || !selectedColor) return;
 
-        // Update displayed price
-        variantPrice.textContent = this.dataset.price;
-        comparePrice.textContent = this.dataset.comparePrice !== "null" ? this.dataset.comparePrice : "";
+      let matchingVariant = null;
 
-        // Enable the add-to-cart button
-        addToCartButton.disabled = false;
-      });
-    });
+      {% for variant in product.variants %}
+        if ("{{ variant.option1 }}" === selectedSize && "{{ variant.option2 }}" === selectedColor) {
+          matchingVariant = {
+            id: "{{ variant.id }}",
+            price: "{{ variant.price | money }}",
+            comparePrice: "{{ variant.compare_at_price | money }}",
+            available: {{ variant.available | json }}
+          };
+        }
+      {% endfor %}
 
-    // Set the first available variant as active by default
-    const firstActiveButton = document.querySelector(".variant-option:not(.sold-out)");
-    if (firstActiveButton) {
-      firstActiveButton.click();
+      if (matchingVariant) {
+        variantIdInput.value = matchingVariant.id;
+        variantPrice.textContent = matchingVariant.price;
+        comparePrice.textContent = matchingVariant.comparePrice !== "null" ? matchingVariant.comparePrice : "";
+
+        if (matchingVariant.available) {
+          addToCartButton.disabled = false;
+        } else {
+          addToCartButton.disabled = true;
+        }
+      } else {
+        addToCartButton.disabled = true;
+      }
     }
+
+    function handleSelection(buttons, type) {
+      buttons.forEach(button => {
+        button.addEventListener("click", function () {
+          buttons.forEach(btn => btn.classList.remove("active"));
+          this.classList.add("active");
+
+          if (type === "size") {
+            selectedSize = this.dataset.size;
+          } else if (type === "color") {
+            selectedColor = this.dataset.color;
+          }
+
+          updateSelectedVariant();
+        });
+      });
+    }
+
+    handleSelection(sizeButtons, "size");
+    handleSelection(colorButtons, "color");
   });
 </script>
 
