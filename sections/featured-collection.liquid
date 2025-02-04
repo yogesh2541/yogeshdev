@@ -140,7 +140,7 @@
     </div> -->
   {% endif %}
 
-  {% for product in collections.all.products %}
+
   <div class="grid__item">
     <form class="product-form" id="product-form-{{ product.id }}" data-product-id="{{ product.id }}">
       {% for option in product.options_with_values %}
@@ -159,7 +159,6 @@
       <button type="button" class="add-to-cart" id="add-to-cart-{{ product.id }}" disabled>Add to Cart</button>
     </form>
   </div>
-{% endfor %}
 
 
 
