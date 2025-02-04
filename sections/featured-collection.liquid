@@ -140,24 +140,27 @@
     </div> -->
   {% endif %}
 
-{% unless product.has_only_default_variant %}
-  <form id="product-form">
-    {% for option in product.options_with_values %}
-      <fieldset>
-        <legend>{{ option.name }}</legend>
-        {% for value in option.values %}
-          <input type="radio" 
-            name="option[{{ option.name }}]" 
-            value="{{ value }}" 
-            id="{{ option.name | handleize }}-{{ value | handleize }}">
-          <label for="{{ option.name | handleize }}-{{ value | handleize }}">{{ value }}</label>
-        {% endfor %}
-      </fieldset>
-    {% endfor %}
+  {% for product in collections.all.products %}
+  <div class="grid__item">
+    <form class="product-form" id="product-form-{{ product.id }}" data-product-id="{{ product.id }}">
+      {% for option in product.options_with_values %}
+        <fieldset>
+          <legend>{{ option.name }}</legend>
+          {% for value in option.values %}
+            <input type="radio" 
+              name="option[{{ option.name }}]" 
+              value="{{ value }}" 
+              id="product-{{ product.id }}-{{ option.name | handleize }}-{{ value | handleize }}">
+            <label for="product-{{ product.id }}-{{ option.name | handleize }}-{{ value | handleize }}">{{ value }}</label>
+          {% endfor %}
+        </fieldset>
+      {% endfor %}
+      
+      <button type="button" class="add-to-cart" id="add-to-cart-{{ product.id }}" disabled>Add to Cart</button>
+    </form>
+  </div>
+{% endfor %}
 
-    <button type="button" id="add-to-cart-button" disabled>Add to Cart</button>
-  </form>
-{% endunless %}
 
 
 </div>
