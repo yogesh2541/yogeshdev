@@ -169,20 +169,7 @@
   {% endif %}
 
 
-  {% form 'product' %}
-
-  <div class="variant-selector">
-
-    {% for variant in product.variants %}
-
-      <button type="button" data-variant-id="{{ variant.id }}">{{ variant.option1 }}</button>
-
-    {% endfor %}
-
-  </div>
-
-{% endform %}
-
+  
 </div>
           </li>
         {%- else -%}
