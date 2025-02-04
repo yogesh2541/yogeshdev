@@ -437,71 +437,37 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const variantRadios = document.querySelectorAll(".variant-radio");
-    const addToCartButton = document.getElementById("add-to-cart-btn");
-    const selectedVariantInput = document.getElementById("selected-variant-id");
-    const cartResponse = document.getElementById("cart-response");
+  document.addEventListener('DOMContentLoaded', function() {
+  const optionInputs = document.querySelectorAll('input[type="radio"]');
+  const addToCartButton = document.getElementById('add-to-cart-button');
+  let selectedOptions = {};
 
-    let selectedOptions = {};
+  optionInputs.forEach(input => {
+    input.addEventListener('change', function() {
+      const optionName = this.name.replace('option[', '').replace(']', '');
+      selectedOptions[optionName] = this.value;
+      updateVariant();
+    });
+  });
 
-    const variantMap = {{ variantMap | json }};
-
-    function updateSelectedVariant() {
-      document.querySelectorAll(".option-group").forEach(group => {
-        const selectedRadio = group.querySelector("input:checked");
-        if (selectedRadio) {
-          selectedOptions[group.dataset.index] = selectedRadio.value;
-        }
+  function updateVariant() {
+    const variants = {{ product.variants | json }};
+    const selectedVariant = variants.find(variant => {
+      return variant.options.every((option, index) => {
+        const optionName = product.options[index];
+        return selectedOptions[optionName] === option;
       });
-
-      let selectedValues = Object.values(selectedOptions);
-      let matchingVariant = null;
-
-      variantMap.forEach(entry => {
-        let parts = entry.split(":");
-        let options = JSON.parse(parts[0]);
-        let variantId = parts[1];
-        let available = parts[2] === "true";
-
-        if (JSON.stringify(options) === JSON.stringify(selectedValues)) {
-          matchingVariant = { id: variantId, available: available };
-        }
-      });
-
-      if (matchingVariant) {
-        selectedVariantInput.value = matchingVariant.id;
-        addToCartButton.disabled = !matchingVariant.available;
-      } else {
-        addToCartButton.disabled = true;
-      }
-    }
-
-    function addToCart() {
-      let variantId = selectedVariantInput.value;
-      if (!variantId) return;
-
-      fetch("/cart/add.js", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: variantId, quantity: 1 })
-      })
-      .then(response => response.json())
-      .then(data => {
-        cartResponse.innerText = "✅ Added to cart!";
-        setTimeout(() => cartResponse.innerText = "", 2000);
-      })
-      .catch(error => {
-        cartResponse.innerText = "❌ Error adding to cart.";
-      });
-    }
-
-    variantRadios.forEach(radio => {
-      radio.addEventListener("change", updateSelectedVariant);
     });
 
-    addToCartButton.addEventListener("click", addToCart);
-  });
+    if (selectedVariant && selectedVariant.available) {
+      addToCartButton.disabled = false;
+      addToCartButton.dataset.variantId = selectedVariant.id;
+    } else {
+      addToCartButton.disabled = true;
+    }
+  }
+});
+
 </script>
 
     
