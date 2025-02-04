@@ -141,16 +141,24 @@
   {% endif %}
 
 {% unless product.has_only_default_variant %}
-  {% for option in product.options_with_values %}
-    <fieldset>
-      <legend>{{ option.name }}</legend>
-      {% for value in option.values %}
-        <input type="radio" name="option[{{ option.name }}]" value="{{ value }}" id="{{ option.name }}-{{ value }}">
-        <label for="{{ option.name }}-{{ value }}">{{ value }}</label>
-      {% endfor %}
-    </fieldset>
-  {% endfor %}
+  <form id="product-form">
+    {% for option in product.options_with_values %}
+      <fieldset>
+        <legend>{{ option.name }}</legend>
+        {% for value in option.values %}
+          <input type="radio" 
+            name="option[{{ option.name }}]" 
+            value="{{ value }}" 
+            id="{{ option.name | handleize }}-{{ value | handleize }}">
+          <label for="{{ option.name | handleize }}-{{ value | handleize }}">{{ value }}</label>
+        {% endfor %}
+      </fieldset>
+    {% endfor %}
+
+    <button type="button" id="add-to-cart-button" disabled>Add to Cart</button>
+  </form>
 {% endunless %}
+
 
 </div>
 
