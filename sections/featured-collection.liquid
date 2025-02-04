@@ -101,7 +101,7 @@
           
 <div class="product-card">
   {% if product.variants.size > 1 %}
-    <div class="variant-drop-down">
+    <!-- <div class="variant-drop-down">
       <form action="/cart/add" method="post" id="product-form-{{ product.id }}">
         <div class="variant-price-wrapper">
         <select name="id" class="variant-selector">
@@ -137,7 +137,7 @@
           {% endif %}
         </button>
       </form>
-    </div>
+    </div> -->
   {% endif %}
 
 {%- unless product.has_only_default_variant -%}
