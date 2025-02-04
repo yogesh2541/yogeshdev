@@ -437,36 +437,64 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-  const optionInputs = document.querySelectorAll('input[type="radio"]');
-  const addToCartButton = document.getElementById('add-to-cart-button');
-  let selectedOptions = {};
+document.addEventListener("DOMContentLoaded", function () {
+    const optionInputs = document.querySelectorAll('input[type="radio"]');
+    const addToCartButton = document.getElementById("add-to-cart-button");
+    let selectedOptions = {};
 
-  optionInputs.forEach(input => {
-    input.addEventListener('change', function() {
-      const optionName = this.name.replace('option[', '').replace(']', '');
-      selectedOptions[optionName] = this.value;
-      updateVariant();
-    });
-  });
-
-  function updateVariant() {
+    // Convert Shopify's Liquid product variants into JavaScript object
     const variants = {{ product.variants | json }};
-    const selectedVariant = variants.find(variant => {
-      return variant.options.every((option, index) => {
-        const optionName = product.options[index];
-        return selectedOptions[optionName] === option;
-      });
+
+    optionInputs.forEach((input) => {
+        input.addEventListener("change", function () {
+            const optionName = this.name.replace("option[", "").replace("]", "");
+            selectedOptions[optionName] = this.value;
+            updateVariant();
+        });
     });
 
-    if (selectedVariant && selectedVariant.available) {
-      addToCartButton.disabled = false;
-      addToCartButton.dataset.variantId = selectedVariant.id;
-    } else {
-      addToCartButton.disabled = true;
+    function updateVariant() {
+        const selectedVariant = variants.find((variant) => {
+            return variant.options.every((option, index) => {
+                const optionName = {{ product.options | json }}[index];
+                return selectedOptions[optionName] === option;
+            });
+        });
+
+        if (selectedVariant) {
+            addToCartButton.disabled = !selectedVariant.available;
+            addToCartButton.dataset.variantId = selectedVariant.id;
+        } else {
+            addToCartButton.disabled = true;
+        }
     }
-  }
+
+    addToCartButton.addEventListener("click", function () {
+        const variantId = this.dataset.variantId;
+        if (!variantId) return;
+
+        fetch("/cart/add.js", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+            body: JSON.stringify({
+                id: variantId,
+                quantity: 1,
+            }),
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            console.log("Added to cart:", data);
+            alert("Product added to cart!");
+        })
+        .catch((error) => {
+            console.error("Error adding to cart:", error);
+        });
+    });
 });
+
 
 </script>
 
